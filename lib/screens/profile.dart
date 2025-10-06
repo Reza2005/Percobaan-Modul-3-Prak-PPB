@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Class untuk merepresentasikan data anggota
 class Member {
   final String name;
   final String nim;
@@ -18,7 +17,6 @@ class Member {
 }
 
 class ProfilePage extends StatelessWidget {
-  // Daftar anggota kelompok
   final List<Member> groupMembers = const [
     Member(
       name: "Rhea Alya Khaerunnisa",
@@ -58,9 +56,8 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile Kelompok 22'),
       ),
-      body: Stack( // Stack untuk menumpuk background dan list
+      body: Stack( 
         children: [
-          // Background Image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -68,7 +65,6 @@ class ProfilePage extends StatelessWidget {
                   'https://cdn.myanimelist.net/s/common/uploaded_files/1444014275-106dee95104209bb9436d6df2b6d5145.jpeg',
                 ),
                 fit: BoxFit.cover,
-                // Membuat gambar sedikit gelap agar teks lebih mudah dibaca
                 colorFilter: ColorFilter.mode(
                   Colors.black26,
                   BlendMode.darken,
@@ -76,13 +72,11 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
           ),
-          // ListView untuk menampilkan anggota
           ListView.builder(
             itemCount: groupMembers.length,
             itemBuilder: (context, index) {
               final member = groupMembers[index];
               return Card(
-                // Membuat card sedikit transparan
                 color: Colors.white.withOpacity(0.85),
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Padding(

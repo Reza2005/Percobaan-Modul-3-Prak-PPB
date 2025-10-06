@@ -25,10 +25,10 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Country>> countries;
   List<Country> allCountries = [];
   List<Country> filteredCountries = [];
-  String? _selectedRegion; // To store the selected region
+  String? _selectedRegion; 
   final TextEditingController _searchController = TextEditingController();
 
-  // List of regions for the dropdown
+ 
   final List<String> _regions = ['All', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 
   @override
