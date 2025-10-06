@@ -6,7 +6,6 @@ import '../providers/theme_provider.dart';
 import 'detail.dart';
 
 class HomePage extends StatefulWidget {
-  // ADDED: Accept the state and functions from the parent
   final List<Country> favoriteCountries;
   final Function(Country) onToggleFavorite;
   final bool Function(Country) isFavorite;
@@ -26,12 +25,24 @@ class _HomePageState extends State<HomePage> {
   late Future<List<Country>> countries;
   List<Country> allCountries = [];
   List<Country> filteredCountries = [];
-  // REMOVED: The favoriteCountries list is no longer managed here
+  String? _selectedRegion; // To store the selected region
+  final TextEditingController _searchController = TextEditingController();
+
+  // List of regions for the dropdown
+  final List<String> _regions = ['All', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 
   @override
   void initState() {
     super.initState();
     countries = fetchCountries();
+    _searchController.addListener(_filterCountries);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterCountries);
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<List<Country>> fetchCountries() async {
@@ -58,18 +69,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _searchCountry(String query) {
+  void _filterCountries() {
     setState(() {
-      filteredCountries = allCountries
-          .where(
-            (country) =>
-                country.name.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
+      filteredCountries = allCountries.where((country) {
+        final matchesRegion = _selectedRegion == null || _selectedRegion == 'All' || country.region == _selectedRegion;
+        final matchesSearch = country.name.toLowerCase().contains(_searchController.text.toLowerCase());
+        return matchesRegion && matchesSearch;
+      }).toList();
     });
   }
-
-  // REMOVED: _toggleFavorite and _isFavorite functions are gone from here
 
   @override
   Widget build(BuildContext context) {
@@ -94,24 +102,55 @@ class _HomePageState extends State<HomePage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8),
-            child: TextField(
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-              onChanged: _searchCountry,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: isDarkMode ? Colors.black26 : Colors.grey.shade200,
-                hintText: "Search country...",
-                hintStyle: TextStyle(
-                  color: isDarkMode ? Colors.white54 : Colors.grey.shade600,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: isDarkMode ? Colors.black26 : Colors.grey.shade200,
+                      hintText: "Search country...",
+                      hintStyle: TextStyle(
+                        color: isDarkMode ? Colors.white54 : Colors.grey.shade600,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: isDarkMode ? Colors.white : Colors.black54,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: isDarkMode ? Colors.white : Colors.black54,
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.black26 : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _selectedRegion ?? 'All',
+                    underline: const SizedBox(),
+                    items: _regions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedRegion = newValue;
+                      });
+                      _filterCountries();
+                    },
+                    hint: const Text('Sort by region'),
+                  ),
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+              ],
             ),
           ),
           Expanded(
@@ -128,7 +167,6 @@ class _HomePageState extends State<HomePage> {
                     itemCount: filteredCountries.length,
                     itemBuilder: (context, i) {
                       final country = filteredCountries[i];
-                      // Use the functions passed from the parent widget
                       final isFav = widget.isFavorite(country);
                       return Card(
                         color: isDarkMode
@@ -159,7 +197,6 @@ class _HomePageState extends State<HomePage> {
                               isFav ? Icons.star : Icons.star_border,
                               color: Colors.amber,
                             ),
-                            // Use the function passed from the parent widget
                             onPressed: () => widget.onToggleFavorite(country),
                           ),
                           onTap: () {
@@ -213,7 +250,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Country class remains the same
 class Country {
   final String name;
   final String region;
@@ -259,7 +295,6 @@ class Country {
     );
   }
 
-  // Adding equality checks is good practice for managing lists
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
