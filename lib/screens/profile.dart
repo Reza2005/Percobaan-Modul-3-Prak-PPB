@@ -1,93 +1,101 @@
 import 'package:flutter/material.dart';
 
-class ProfilePage extends StatefulWidget {
-  final VoidCallback? onHomeTap;
+// Class untuk merepresentasikan data anggota
+class Member {
+  final String name;
+  final String nim;
+  final String group;
+  final String shift;
+  final String photoAsset;
 
-  const ProfilePage({super.key, this.onHomeTap});
-
-  @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  const Member({
+    required this.name,
+    required this.nim,
+    required this.group,
+    required this.shift,
+    required this.photoAsset,
+  });
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  final List<Map<String, String>> teamMembers = [
-    {'Nama': 'Sanggul Rotua Pakpahan', 'NIM': '21120122120018'},
+class ProfilePage extends StatelessWidget {
+  // Daftar anggota kelompok
+  final List<Member> groupMembers = const [
+    Member(
+      name: "Rhea Alya Khaerunnisa",
+      nim: "21120123130088",
+      group: "22",
+      shift: "4",
+      photoAsset: "assets/images/profile_satu.jpg", // DIUBAH
+    ),
+    Member(
+      name: "Anisa Anastasya",
+      nim: "21120123130080",
+      group: "22",
+      shift: "4",
+      photoAsset: "assets/images/profile_dua.jpg", // DIUBAH
+    ),
+    Member(
+      name: "Salsabila Diva",
+      nim: "21120123140044",
+      group: "22",
+      shift: "4",
+      photoAsset: "assets/images/profile_tiga.jpg", // DIUBAH
+    ),
+    Member(
+      name: "Muhamad Reswara Suryawan",
+      nim: "21120123140126",
+      group: "22",
+      shift: "4",
+      photoAsset: "assets/images/profile_empat.jpg", // DIUBAH
+    ),
   ];
+
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: const Color.fromARGB(255, 13, 105, 225),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.home),
-            onPressed: widget.onHomeTap,
-          ),
-        ],
+        title: const Text('Profile Kelompok 22'),
       ),
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: FractionallySizedBox(
-              alignment: Alignment.topCenter,
-              heightFactor: 0.5,
-              child: Container(
-                decoration: BoxDecoration(
-                  image: const DecorationImage(
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                    image: NetworkImage(
-                      'https://cdn.myanimelist.net/s/common/uploaded_files/1444014275-106dee95104209bb9436d6df2b6d5145.jpeg',
+      body: ListView.builder(
+        itemCount: groupMembers.length,
+        itemBuilder: (context, index) {
+          final member = groupMembers[index];
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: AssetImage(member.photoAsset),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          member.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text('NIM: ${member.nim}'),
+                        const SizedBox(height: 4),
+                        Text('Kelompok: ${member.group} | Shift: ${member.shift}'),
+                      ],
                     ),
                   ),
-                  color: const Color.fromARGB(255, 255, 252, 252)
-                      .withValues(alpha: 128),
-                ),
+                ],
               ),
             ),
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 100.0,
-                  height: 100.0,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage(
-                        'https://avatars.githubusercontent.com/SanggulRotuaPakpahan',
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                for (var member in teamMembers)
-                  Column(
-                    children: [
-                      Text(
-                        member['Nama'] ?? 'No Name',
-                        style: const TextStyle(
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        member['NIM'] ?? 'No NIM',
-                        style: const TextStyle(fontSize: 16.0),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

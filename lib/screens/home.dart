@@ -42,8 +42,9 @@ class _HomePageState extends State<HomePage> {
     if (response.statusCode == 200) {
       final respBody = await response.transform(utf8.decoder).join();
       final List<dynamic> jsonData = jsonDecode(respBody);
-      final List<Country> list =
-          jsonData.map((j) => Country.fromJson(j)).toList();
+      final List<Country> list = jsonData
+          .map((j) => Country.fromJson(j))
+          .toList();
 
       if (mounted) {
         setState(() {
@@ -60,12 +61,14 @@ class _HomePageState extends State<HomePage> {
   void _searchCountry(String query) {
     setState(() {
       filteredCountries = allCountries
-          .where((country) =>
-              country.name.toLowerCase().contains(query.toLowerCase()))
+          .where(
+            (country) =>
+                country.name.toLowerCase().contains(query.toLowerCase()),
+          )
           .toList();
     });
   }
-  
+
   // REMOVED: _toggleFavorite and _isFavorite functions are gone from here
 
   @override
@@ -99,9 +102,12 @@ class _HomePageState extends State<HomePage> {
                 fillColor: isDarkMode ? Colors.black26 : Colors.grey.shade200,
                 hintText: "Search country...",
                 hintStyle: TextStyle(
-                    color: isDarkMode ? Colors.white54 : Colors.grey.shade600),
-                prefixIcon: Icon(Icons.search,
-                    color: isDarkMode ? Colors.white : Colors.black54),
+                  color: isDarkMode ? Colors.white54 : Colors.grey.shade600,
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: isDarkMode ? Colors.white : Colors.black54,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -112,7 +118,8 @@ class _HomePageState extends State<HomePage> {
             child: FutureBuilder<List<Country>>(
               future: countries,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting || allCountries.isEmpty) {
+                if (snapshot.connectionState == ConnectionState.waiting ||
+                    allCountries.isEmpty) {
                   return _buildSkeletonLoader(isDarkMode);
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -122,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                     itemBuilder: (context, i) {
                       final country = filteredCountries[i];
                       // Use the functions passed from the parent widget
-                      final isFav = widget.isFavorite(country); 
+                      final isFav = widget.isFavorite(country);
                       return Card(
                         color: isDarkMode
                             ? const Color(0xFF1E1E1E)
@@ -134,14 +141,18 @@ class _HomePageState extends State<HomePage> {
                           title: Text(
                             country.name,
                             style: TextStyle(
-                                color: isDarkMode ? Colors.white : Colors.grey[900]),
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : Colors.grey[900],
+                            ),
                           ),
                           subtitle: Text(
                             country.region,
                             style: TextStyle(
-                                color: isDarkMode
-                                    ? Colors.white70
-                                    : Colors.grey[700]),
+                              color: isDarkMode
+                                  ? Colors.white70
+                                  : Colors.grey[700],
+                            ),
                           ),
                           trailing: IconButton(
                             icon: Icon(
