@@ -4,23 +4,29 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import 'detail.dart';
-import 'favorites.dart';
-import 'profile.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  // ADDED: Accept the state and functions from the parent
+  final List<Country> favoriteCountries;
+  final Function(Country) onToggleFavorite;
+  final bool Function(Country) isFavorite;
+
+  const HomePage({
+    super.key,
+    required this.favoriteCountries,
+    required this.onToggleFavorite,
+    required this.isFavorite,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
   late Future<List<Country>> countries;
   List<Country> allCountries = [];
   List<Country> filteredCountries = [];
-  List<Country> favoriteCountries = [];
+  // REMOVED: The favoriteCountries list is no longer managed here
 
   @override
   void initState() {
@@ -39,8 +45,12 @@ class _HomePageState extends State<HomePage> {
       final List<Country> list =
           jsonData.map((j) => Country.fromJson(j)).toList();
 
-      allCountries = list;
-      filteredCountries = list;
+      if (mounted) {
+        setState(() {
+          allCountries = list;
+          filteredCountries = list;
+        });
+      }
       return list;
     } else {
       throw Exception('Failed to load countries: ${response.statusCode}');
@@ -55,53 +65,11 @@ class _HomePageState extends State<HomePage> {
           .toList();
     });
   }
-
-  void _toggleFavorite(Country country) {
-    setState(() {
-      if (favoriteCountries.contains(country)) {
-        favoriteCountries.remove(country);
-      } else {
-        favoriteCountries.add(country);
-      }
-    });
-  }
-
-  bool _isFavorite(Country country) {
-    return favoriteCountries.contains(country);
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  
+  // REMOVED: _toggleFavorite and _isFavorite functions are gone from here
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      _buildHomePage(context),
-      FavoritesScreen(favoriteCountries: favoriteCountries),
-      const ProfilePage(),
-    ];
-
-    return Scaffold(
-      body: pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        selectedItemColor: Colors.amber,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Favorites'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHomePage(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
@@ -111,9 +79,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: Icon(
-              isDarkMode
-                  ? Icons.wb_sunny_outlined
-                  : Icons.dark_mode_outlined,
+              isDarkMode ? Icons.wb_sunny_outlined : Icons.dark_mode_outlined,
             ),
             onPressed: () {
               themeProvider.toggleTheme();
@@ -121,97 +87,122 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Country>>(
-        future: countries,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No countries found'));
-          }
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextField(
-                  style: TextStyle(
-                      color: isDarkMode ? Colors.white : Colors.black),
-                  onChanged: _searchCountry,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor:
-                        isDarkMode ? Colors.black26 : Colors.grey.shade200,
-                    hintText: "Search country...",
-                    hintStyle: TextStyle(
-                        color:
-                            isDarkMode ? Colors.white54 : Colors.grey.shade600),
-                    prefixIcon: Icon(Icons.search,
-                        color: isDarkMode ? Colors.white : Colors.black54),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: TextField(
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+              onChanged: _searchCountry,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: isDarkMode ? Colors.black26 : Colors.grey.shade200,
+                hintText: "Search country...",
+                hintStyle: TextStyle(
+                    color: isDarkMode ? Colors.white54 : Colors.grey.shade600),
+                prefixIcon: Icon(Icons.search,
+                    color: isDarkMode ? Colors.white : Colors.black54),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredCountries.length,
-                  itemBuilder: (context, i) {
-                    final country = filteredCountries[i];
-                    final isFav = _isFavorite(country);
-                    return Card(
-                      color: isDarkMode
-                          ? const Color(0xFF1E1E1E)
-                          : Colors.grey.shade100,
-                      child: ListTile(
-                        leading: country.flagsPng != null
-                            ? Image.network(country.flagsPng!, width: 50)
-                            : const SizedBox(width: 50),
-                        title: Text(
-                          country.name,
-                          style: TextStyle(
-                              color:
-                                  isDarkMode ? Colors.white : Colors.grey[900]),
-                        ),
-                        subtitle: Text(
-                          country.region,
-                          style: TextStyle(
-                              color: isDarkMode
-                                  ? Colors.white70
-                                  : Colors.grey[700]),
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            isFav ? Icons.star : Icons.star_border,
-                            color: Colors.amber,
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<Country>>(
+              future: countries,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting || allCountries.isEmpty) {
+                  return _buildSkeletonLoader(isDarkMode);
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else {
+                  return ListView.builder(
+                    itemCount: filteredCountries.length,
+                    itemBuilder: (context, i) {
+                      final country = filteredCountries[i];
+                      // Use the functions passed from the parent widget
+                      final isFav = widget.isFavorite(country); 
+                      return Card(
+                        color: isDarkMode
+                            ? const Color(0xFF1E1E1E)
+                            : Colors.grey.shade100,
+                        child: ListTile(
+                          leading: country.flagsPng != null
+                              ? Image.network(country.flagsPng!, width: 50)
+                              : const SizedBox(width: 50),
+                          title: Text(
+                            country.name,
+                            style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.grey[900]),
                           ),
-                          onPressed: () => _toggleFavorite(country),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DetailPage(country: country),
+                          subtitle: Text(
+                            country.region,
+                            style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.grey[700]),
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              isFav ? Icons.star : Icons.star_border,
+                              color: Colors.amber,
                             ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+                            // Use the function passed from the parent widget
+                            onPressed: () => widget.onToggleFavorite(country),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    DetailPage(country: country),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildSkeletonLoader(bool isDarkMode) {
+    return ListView.builder(
+      itemCount: 10,
+      itemBuilder: (context, index) {
+        return Card(
+          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
+          child: ListTile(
+            leading: Container(
+              width: 50,
+              height: 30,
+              color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+            ),
+            title: Container(
+              height: 16,
+              width: 150,
+              color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+            ),
+            subtitle: Container(
+              height: 12,
+              width: 100,
+              color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
+// Country class remains the same
 class Country {
   final String name;
   final String region;
@@ -256,4 +247,15 @@ class Country {
       currencies: cur,
     );
   }
+
+  // Adding equality checks is good practice for managing lists
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Country &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
 }

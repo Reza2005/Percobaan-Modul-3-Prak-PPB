@@ -13,12 +13,23 @@ class NavigationPage extends StatefulWidget {
 class _NavigationPageState extends State<NavigationPage> {
   int _currentIndex = 0;
 
-  // List halaman
-  final List<Widget> _pages = const [
-    HomePage(),
-    FavoritesScreen(favoriteCountries: []),
-    ProfilePage(),
-  ];
+  // --- STATE HAS BEEN LIFTED UP TO HERE ---
+  final List<Country> _favoriteCountries = [];
+
+  void _toggleFavorite(Country country) {
+    setState(() {
+      if (_favoriteCountries.contains(country)) {
+        _favoriteCountries.remove(country);
+      } else {
+        _favoriteCountries.add(country);
+      }
+    });
+  }
+
+  bool _isFavorite(Country country) {
+    return _favoriteCountries.contains(country);
+  }
+  // -----------------------------------------
 
   void _onTabTapped(int index) {
     setState(() {
@@ -28,8 +39,19 @@ class _NavigationPageState extends State<NavigationPage> {
 
   @override
   Widget build(BuildContext context) {
+    // We now build the pages list here, passing the state down
+    final List<Widget> pages = [
+      HomePage(
+        favoriteCountries: _favoriteCountries, // Pass the list
+        onToggleFavorite: _toggleFavorite,     // Pass the function
+        isFavorite: _isFavorite,               // Pass the function
+      ),
+      FavoritesScreen(favoriteCountries: _favoriteCountries), // Pass the SAME list
+      const ProfilePage(),
+    ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         selectedItemColor: Colors.amber,
